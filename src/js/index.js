@@ -8,6 +8,7 @@ const refs = {
   cardsEl: document.querySelector('.cards'),
   addBtnEl: document.querySelector('.add-btn'),
   formEl: document.querySelector('.create-form'),
+  editBtn: document.querySelector('.edit-btn'),
 };
 
 refs.formEl.addEventListener('submit', onFormSubmit);
@@ -15,6 +16,10 @@ refs.formEl.addEventListener('submit', onFormSubmit);
 getData().then(({ posts, users }) => {
   const post = createPost(posts, users);
   insertCardToHTML(post.join(' '));
+
+  document.querySelectorAll('.delete-btn').forEach((btn) => {
+    btn.addEventListener('click', deletePost);
+  });
 });
 
 async function getData() {
@@ -33,7 +38,7 @@ async function onFormSubmit(event) {
   const body = event.target.elements.body.value;
   const userId = 1;
 
-  const request = await axios
+  await axios
     .post('https://jsonplaceholder.typicode.com/posts', {
       title,
       body,
@@ -41,12 +46,28 @@ async function onFormSubmit(event) {
     })
     .then(({ data }) => {
       const { title, body } = data;
-      const post = makePost(title, body);
+      const post = addPost(title, body);
       refs.cardsEl.insertAdjacentHTML('afterbegin', post);
+
+      document.querySelectorAll('.delete-btn').forEach((btn) => {
+        btn.addEventListener('click', deletePost);
+      });
+    });
+}
+async function deletePost(event) {
+  const postId = event.target.parentNode.getAttribute('data-id');
+
+  const card = event.target.parentNode.parentNode.parentNode;
+
+  await axios
+    .delete(`https://jsonplaceholder.typicode.com/posts/${postId}`)
+    .then((res) => {
+      card.remove();
+      console.log(res);
     });
 }
 function createPost(posts, users) {
-  return posts.map(({ userId, title, body }) => {
+  return posts.map(({ id, userId, title, body }) => {
     let postAuthor;
 
     users.map((user) => {
@@ -58,13 +79,13 @@ function createPost(posts, users) {
     const card = `
     <div class="col-sm-4 mb-3">
           <div class="card">
-            <div class="card-body">
+            <div class="card-body" data-id="${id}">
               <h5 class="card-title">${title}</h5>
               <h6 class="card-subtitle mb-2 text-muted">${postAuthor.name}</h6>
               <h6 class="card-subtitle mb-2 text-muted">${postAuthor.email}</h6>
               <p class="card-text">${body}</p>
-              <button class="btn btn-primary">Edit</button>
-              <button class="btn btn-danger">Delete</button>
+              <button class="btn btn-primary edit-btn">Edit</button>
+              <button class="btn btn-danger delete-btn">Delete</button>
             </div>
           </div>
         </div>
@@ -73,10 +94,7 @@ function createPost(posts, users) {
     return card;
   });
 }
-function insertCardToHTML(card) {
-  refs.cardsEl.insertAdjacentHTML('beforeend', card);
-}
-function makePost(title, body) {
+function addPost(title, body) {
   return `<div class="col-sm-4 mb-3">
           <div class="card">
             <div class="card-body">
@@ -85,9 +103,12 @@ function makePost(title, body) {
               <h6 class="card-subtitle mb-2 text-muted">Sincere@april.biz</h6>
               <p class="card-text">${body}</p>
               <button class="btn btn-primary">Edit</button>
-              <button class="btn btn-danger">Delete</button>
+              <button class="btn btn-danger delete-btn">Delete</button>
             </div>
           </div>
         </div>
     `;
+}
+function insertCardToHTML(card) {
+  refs.cardsEl.insertAdjacentHTML('beforeend', card);
 }
