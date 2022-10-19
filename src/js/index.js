@@ -7,13 +7,10 @@ import '../css/styles.css';
 const refs = {
   cardsEl: document.querySelector('.cards'),
   addBtnEl: document.querySelector('.add-btn'),
-  createPostModal: document.querySelector('#createPostModal'),
-  titleInputEl: document.querySelector('#post-title'),
+  formEl: document.querySelector('.create-form'),
 };
 
-refs.createPostModal.addEventListener('show.bs.modal', (event) => {
-  refs.titleInputEl.focus();
-});
+refs.formEl.addEventListener('submit', onFormSubmit);
 
 getData().then(({ posts, users }) => {
   const post = createPost(posts, users);
@@ -28,6 +25,25 @@ async function getData() {
     posts: posts.data,
     users: users.data,
   };
+}
+async function onFormSubmit(event) {
+  event.preventDefault();
+
+  const title = event.target.elements.title.value;
+  const body = event.target.elements.body.value;
+  const userId = 1;
+
+  const request = await axios
+    .post('https://jsonplaceholder.typicode.com/posts', {
+      title,
+      body,
+      userId,
+    })
+    .then(({ data }) => {
+      const { title, body } = data;
+      const post = makePost(title, body);
+      refs.cardsEl.insertAdjacentHTML('afterbegin', post);
+    });
 }
 function createPost(posts, users) {
   return posts.map(({ userId, title, body }) => {
@@ -59,4 +75,19 @@ function createPost(posts, users) {
 }
 function insertCardToHTML(card) {
   refs.cardsEl.insertAdjacentHTML('beforeend', card);
+}
+function makePost(title, body) {
+  return `<div class="col-sm-4 mb-3">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">${title}</h5>
+              <h6 class="card-subtitle mb-2 text-muted">Leanne Graham</h6>
+              <h6 class="card-subtitle mb-2 text-muted">Sincere@april.biz</h6>
+              <p class="card-text">${body}</p>
+              <button class="btn btn-primary">Edit</button>
+              <button class="btn btn-danger">Delete</button>
+            </div>
+          </div>
+        </div>
+    `;
 }

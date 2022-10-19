@@ -42,16 +42,31 @@
             ></button>
           </div>
           <div class="modal-body">
-            <form>
+            <form class="create-form">
               <div class="mb-3">
                 <label for="post-title" class="col-form-label">Title</label>
-                <input type="text" class="form-control" id="post-title" />
+                <input
+                  type="text"
+                  class="form-control"
+                  id="post-title"
+                  name="title"
+                />
               </div>
               <div class="mb-3">
                 <label for="post-body" class="col-form-label">Body</label>
-                <textarea class="form-control" id="post-body"></textarea>
+                <textarea
+                  class="form-control"
+                  id="post-body"
+                  name="body"
+                ></textarea>
               </div>
-              <button type="submit" class="btn btn-primary">Create post</button>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                data-bs-dismiss="modal"
+              >
+                Create post
+              </button>
             </form>
           </div>
         </div>
