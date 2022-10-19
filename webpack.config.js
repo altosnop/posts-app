@@ -19,10 +19,6 @@ module.exports = {
         exclude: /node_modules/,
         use: ['babel-loader'],
       },
-      {
-        test: /\.handlebars$/,
-        loader: 'handlebars-loader',
-      },
     ],
   },
   plugins: [new HtmlWebpackPlugin({ template: 'src/index.html' })],
