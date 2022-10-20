@@ -10,17 +10,12 @@
     <nav
       class="navbar navbar-dark bg-primary d-flex justify-content-center mb-3"
     >
-      <button
-        type="button"
-        class="btn btn-outline-light add-btn"
-        data-bs-toggle="modal"
-        data-bs-target="#createPostModal"
-      >
+      <button type="button" class="btn btn-outline-light add-btn">
         Add post
       </button>
     </nav>
 
-    <!-- Modal -->
+    <!-- Create Post Modal -->
     <div
       class="modal fade"
       id="createPostModal"
@@ -36,8 +31,7 @@
             </h1>
             <button
               type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
+              class="btn-close create-closeBtn"
               aria-label="Close"
             ></button>
           </div>
@@ -60,19 +54,58 @@
                   name="body"
                 ></textarea>
               </div>
-              <button
-                type="submit"
-                class="btn btn-primary"
-                data-bs-dismiss="modal"
-              >
-                Create post
-              </button>
+              <button type="submit" class="btn btn-primary">Create post</button>
             </form>
           </div>
         </div>
       </div>
     </div>
-    <!-- Modal -->
+    <!-- Create Post Modal -->
+
+    <!-- Edit Post Modal -->
+    <div
+      class="modal fade"
+      id="editPostModal"
+      tabindex="-1"
+      aria-labelledby="editPostModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="editPostModalLabel">Edit Post</h1>
+            <button
+              type="button"
+              class="btn-close edit-closeBtn"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form class="edit-form">
+              <div class="mb-3">
+                <label for="post-title" class="col-form-label">Title</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="post-title"
+                  name="title"
+                />
+              </div>
+              <div class="mb-3">
+                <label for="post-body" class="col-form-label">Body</label>
+                <textarea
+                  class="form-control"
+                  id="post-body"
+                  name="body"
+                ></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">Edit post</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Edit Post Modal -->
 
     <div class="container">
       <div class="row cards"></div>
