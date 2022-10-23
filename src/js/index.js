@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { Modal } from 'bootstrap';
 
 import 'bootstrap/dist/js/bootstrap.bundle';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -7,54 +8,84 @@ import '../css/styles.css';
 const refs = {
   cardsEl: document.querySelector('.cards'),
   addBtnEl: document.querySelector('.add-btn'),
+  createCloseBtnEl: document.querySelector('.create-closeBtn'),
+  editCloseBtnEl: document.querySelector('.edit-closeBtn'),
+  modalEl: document.querySelector('#createPostModal'),
+  editModalEl: document.querySelector('#editPostModal'),
   formEl: document.querySelector('.create-form'),
-  editBtn: document.querySelector('.edit-btn'),
+  editFormEl: document.querySelector('.edit-form'),
 };
 
-refs.formEl.addEventListener('submit', onFormSubmit);
+let postId;
+let currentCard;
+
+const modal = new Modal(refs.modalEl);
+const editModal = new Modal(refs.editModalEl);
+
+refs.addBtnEl.addEventListener('click', () => modal.show());
+refs.createCloseBtnEl.addEventListener('click', () => modal.hide());
+refs.editCloseBtnEl.addEventListener('click', () => editModal.hide());
+
+refs.formEl.addEventListener('submit', onCreatePost);
+refs.editFormEl.addEventListener('submit', onEditPost);
 
 getData().then(({ posts, users }) => {
   const post = createPost(posts, users);
-  insertCardToHTML(post.join(' '));
 
-  document.querySelectorAll('.delete-btn').forEach((btn) => {
-    btn.addEventListener('click', deletePost);
-  });
+  insertCardToHTML(post.join(' '), 'beforeend');
+
+  addListenerToBtn('.delete-btn', onDeletePost);
+  addListenerToBtn('.edit-btn', openEditPost);
 });
 
-async function getData() {
-  const posts = await axios.get('https://jsonplaceholder.typicode.com/posts');
-  const users = await axios.get('https://jsonplaceholder.typicode.com/users');
-
-  return {
-    posts: posts.data,
-    users: users.data,
-  };
-}
-async function onFormSubmit(event) {
+async function onCreatePost(event) {
   event.preventDefault();
 
   const title = event.target.elements.title.value;
   const body = event.target.elements.body.value;
   const userId = 1;
 
-  await axios
-    .post('https://jsonplaceholder.typicode.com/posts', {
-      title,
-      body,
-      userId,
-    })
-    .then(({ data }) => {
-      const { title, body } = data;
-      const post = addPost(title, body);
-      refs.cardsEl.insertAdjacentHTML('afterbegin', post);
+  if (title !== '' && body !== '') {
+    await axios
+      .post('https://jsonplaceholder.typicode.com/posts', {
+        title,
+        body,
+        userId,
+      })
+      .then(({ data }) => {
+        const { id, title, body, userId } = data;
 
-      document.querySelectorAll('.delete-btn').forEach((btn) => {
-        btn.addEventListener('click', deletePost);
+        const posts = [
+          {
+            id,
+            title,
+            body,
+            userId,
+          },
+        ];
+        const users = [
+          {
+            id: 1,
+            name: 'Leanne Graham',
+            email: 'Sincere@april.biz',
+          },
+        ];
+
+        const post = createPost(posts, users);
+
+        insertCardToHTML(post.join(' '), 'afterbegin');
+
+        addListenerToBtn('.delete-btn', onDeletePost);
+        addListenerToBtn('.edit-btn', openEditPost);
+
+        event.target.reset();
+        modal.hide();
       });
-    });
+  } else {
+    alert('Please fill the inputs');
+  }
 }
-async function deletePost(event) {
+async function onDeletePost(event) {
   const postId = event.target.parentNode.getAttribute('data-id');
 
   const card = event.target.parentNode.parentNode.parentNode;
@@ -63,9 +94,49 @@ async function deletePost(event) {
     .delete(`https://jsonplaceholder.typicode.com/posts/${postId}`)
     .then((res) => {
       card.remove();
-      console.log(res);
     });
 }
+async function onEditPost(event) {
+  event.preventDefault();
+
+  const newTitle = event.target.elements.title.value;
+  const newBody = event.target.elements.body.value;
+
+  if (newTitle !== '' && newBody !== '') {
+    await axios
+      .put(`https://jsonplaceholder.typicode.com/posts/${postId}`, {
+        newTitle,
+        newBody,
+      })
+      .then(({ data }) => {
+        const { newTitle, newBody } = data;
+
+        currentCard.querySelector('.card-title').innerText = newTitle;
+        currentCard.querySelector('.card-text').innerText = newBody;
+
+        addListenerToBtn('.delete-btn', onDeletePost);
+        addListenerToBtn('.edit-btn', openEditPost);
+
+        editModal.hide();
+      });
+  } else {
+    alert('Please fill the inputs');
+  }
+}
+
+function openEditPost(event) {
+  editModal.show();
+
+  const title = event.target.parentNode.querySelector('.card-title').innerText;
+  const body = event.target.parentNode.querySelector('.card-text').innerText;
+
+  postId = event.target.parentNode.getAttribute('data-id');
+  currentCard = event.target.parentNode;
+
+  refs.editFormEl.elements.title.value = title;
+  refs.editFormEl.elements.body.value = body;
+}
+
 function createPost(posts, users) {
   return posts.map(({ id, userId, title, body }) => {
     let postAuthor;
@@ -79,7 +150,7 @@ function createPost(posts, users) {
     const card = `
     <div class="col-sm-4 mb-3">
           <div class="card">
-            <div class="card-body" data-id="${id}">
+            <div class="card-body" data-id="${id}" data-user-id="${userId}">
               <h5 class="card-title">${title}</h5>
               <h6 class="card-subtitle mb-2 text-muted">${postAuthor.name}</h6>
               <h6 class="card-subtitle mb-2 text-muted">${postAuthor.email}</h6>
@@ -94,21 +165,22 @@ function createPost(posts, users) {
     return card;
   });
 }
-function addPost(title, body) {
-  return `<div class="col-sm-4 mb-3">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">${title}</h5>
-              <h6 class="card-subtitle mb-2 text-muted">Leanne Graham</h6>
-              <h6 class="card-subtitle mb-2 text-muted">Sincere@april.biz</h6>
-              <p class="card-text">${body}</p>
-              <button class="btn btn-primary">Edit</button>
-              <button class="btn btn-danger delete-btn">Delete</button>
-            </div>
-          </div>
-        </div>
-    `;
+
+function insertCardToHTML(card, place) {
+  refs.cardsEl.insertAdjacentHTML(place, card);
 }
-function insertCardToHTML(card) {
-  refs.cardsEl.insertAdjacentHTML('beforeend', card);
+function addListenerToBtn(className, fnc) {
+  document.querySelectorAll(className).forEach((btn) => {
+    btn.addEventListener('click', fnc);
+  });
+}
+
+async function getData() {
+  const posts = await axios.get('https://jsonplaceholder.typicode.com/posts');
+  const users = await axios.get('https://jsonplaceholder.typicode.com/users');
+
+  return {
+    posts: posts.data,
+    users: users.data,
+  };
 }
