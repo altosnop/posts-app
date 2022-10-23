@@ -41,9 +41,12 @@ getData().then(({ posts, users }) => {
 async function onCreatePost(event) {
   event.preventDefault();
 
+  const button = event.target.querySelector('button');
   const title = event.target.elements.title.value;
   const body = event.target.elements.body.value;
   const userId = 1;
+
+  setSpinner(button);
 
   if (title !== '' && body !== '') {
     await axios
@@ -80,6 +83,8 @@ async function onCreatePost(event) {
 
         event.target.reset();
         modal.hide();
+
+        removeSpinner(button, 'Create post');
       });
   } else {
     alert('Please fill the inputs');
@@ -87,6 +92,8 @@ async function onCreatePost(event) {
 }
 async function onDeletePost(event) {
   const postId = event.target.parentNode.getAttribute('data-id');
+
+  setSpinner(event.target);
 
   const card = event.target.parentNode.parentNode.parentNode;
 
@@ -99,8 +106,11 @@ async function onDeletePost(event) {
 async function onEditPost(event) {
   event.preventDefault();
 
+  const button = event.target.querySelector('button');
   const newTitle = event.target.elements.title.value;
   const newBody = event.target.elements.body.value;
+
+  setSpinner(button);
 
   if (newTitle !== '' && newBody !== '') {
     await axios
@@ -118,6 +128,8 @@ async function onEditPost(event) {
         addListenerToBtn('.edit-btn', openEditPost);
 
         editModal.hide();
+
+        removeSpinner(button, 'Edit post');
       });
   } else {
     alert('Please fill the inputs');
@@ -173,6 +185,19 @@ function addListenerToBtn(className, fnc) {
   document.querySelectorAll(className).forEach((btn) => {
     btn.addEventListener('click', fnc);
   });
+}
+function setSpinner(button) {
+  button.setAttribute('disabled', 'true');
+  button.innerHTML = `
+    <span
+      class="spinner-border spinner-border-sm"
+      role="status"
+      aria-hidden="true">
+    </span>`;
+}
+function removeSpinner(button, text) {
+  button.removeAttribute('disabled');
+  button.innerHTML = `${text}`;
 }
 
 async function getData() {
